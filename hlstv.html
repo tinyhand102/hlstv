@@ -1,0 +1,148 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>HLS TV</title>
+    <script src="https://cdn.tutorialjinni.com/hls.js/1.2.1/hls.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+</head>
+
+<body>
+    <div class="grid-container">
+        <div class="menu list-group" id="menu"></div>
+        <div class="video-container">
+            <video id="video" width='100%' height='90%' controls autoplay
+                src="http://cdns.jp-primehome.com:8000/zhongying/live/playlist.m3u8?cid=gd04">
+        </div>
+    </div>
+    <script>
+        const listStyle = ["list-group-item-primary", "list-group-item-success", "list-group-item-warning", "list-group-item-light"]
+        const m3uList = {
+            'NHK G': 'http://cdns.jp-primehome.com:8000/zhongying/live/playlist.m3u8?cid=gd01',
+            'NHK E': 'http://cdns.jp-primehome.com:8000/zhongying/live/playlist.m3u8?cid=gd02',
+            'NTV': 'http://cdns.jp-primehome.com:8000/zhongying/live/playlist.m3u8?cid=gd03',
+            'TBS': 'http://cdns.jp-primehome.com:8000/zhongying/live/playlist.m3u8?cid=gd04',
+            'Fuji TV': 'http://cdns.jp-primehome.com:8000/zhongying/live/playlist.m3u8?cid=gd05',
+            'TV Asahi': 'http://cdns.jp-primehome.com:8000/zhongying/live/playlist.m3u8?cid=gd06',
+            'TV Tokyo': 'http://cdns.jp-primehome.com:8000/zhongying/live/playlist.m3u8?cid=gd07',
+            'TOKYO MX1': 'http://cdns.jp-primehome.com:8000/zhongying/live/playlist.m3u8?cid=gd08',
+        };
+        let video = document.getElementById('video');
+        let menu = document.getElementById('menu');
+        if (Hls.isSupported) { var hls = new Hls(); }
+
+        let context = "";
+        Object.entries(m3uList).forEach(([tvname, url], index) => {
+            const rowStyle = listStyle[index % listStyle.length];
+            context += `<a href="#" class="list-group-item list-group-item-action ${rowStyle} list-group-item-custom" data-bs-toggle="list">${tvname}</a>`;
+        })
+        menu.innerHTML = context;
+
+        reloadVideo(hls, video);
+
+        let links = document.querySelectorAll("#menu a");
+        links.forEach(function (link) {
+            link.addEventListener("click", function (event) {
+                // Prevent default link behavior (e.g., page refresh)
+                event.preventDefault();
+                video.src = m3uList[link.textContent];
+                reloadVideo(hls, video);
+            });
+        });
+
+        // 'F': Toggle full screen
+        // 'M': Toggle mute
+        // 'K': Toggle play
+        let isPressed = false;
+        document.addEventListener("keydown", function (event) {
+            if (isPressed) return;
+            switch (event.key) {
+                case 'm':
+                case 'M':
+                    video.muted = !video.muted;
+                    break;
+                case 'k':
+                case 'K':
+                    if (video.paused) video.play();
+                    else video.pause();
+                    break;
+                case 'f':
+                case 'F':
+                    toggleFullScreen();
+                    break;
+            }
+            isPressed = true;
+        });
+
+        document.addEventListener("keyup", function (event) {
+            isPressed = false;
+        });
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                // Enter fullscreen mode
+                if (video.requestFullscreen) {
+                    video.requestFullscreen();
+                } else if (video.mozRequestFullScreen) { /* Firefox */
+                    video.mozRequestFullScreen();
+                } else if (video.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+                    video.webkitRequestFullscreen();
+                } else if (video.msRequestFullscreen) { /* IE/Edge */
+                    video.msRequestFullscreen();
+                }
+            } else {
+                // Exit fullscreen mode
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) { /* Firefox */
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) { /* Chrome, Safari & Opera */
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { /* IE/Edge */
+                    document.msExitFullscreen();
+                }
+            }
+        }
+
+        function reloadVideo(liveStreaming, stream) {
+            if (Hls.isSupported()) {
+                liveStreaming.loadSource(stream.src);
+                liveStreaming.attachMedia(stream);
+            }
+            else {
+                alert("Cannot stream HLS, use another video source");
+            }
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+</body>
+<style>
+    .grid-container {
+        display: grid;
+        grid-template-areas:
+            'menu main main main main main main';
+        padding-right: 10px;
+        background-color: rgb(250, 219, 224);
+        width: 100%;
+        height: 100%;
+    }
+
+    .menu {
+        grid-area: menu;
+        width: 160px;
+    }
+
+    .list-group-item-custom {
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .video-container {
+        grid-area: main;
+    }
+</style>
+
+</html>
